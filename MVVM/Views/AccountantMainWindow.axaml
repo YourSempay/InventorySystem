@@ -1,0 +1,227 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        xmlns:equipment="clr-namespace:MVVM.Models.Dto.Equipment"
+        xmlns:reports="clr-namespace:MVVM.Models.Dto.Reports"
+        xmlns:models="clr-namespace:MVVM.Models.Dto.Users"
+        mc:Ignorable="d"
+        x:Class="MVVM.Views.AccountantMainWindow"
+        Title="Админка"
+        Width="800" Height="600"
+        x:DataType="vm:AccountantViewModel">
+    <TabControl>
+        <TabItem Header="Дашборд">
+            <ScrollViewer Margin="10">
+                <WrapPanel>
+                    <Border Background="LightGreen" Padding="10" CornerRadius="5" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Available}" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="Доступно" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="LightBlue" Padding="10" CornerRadius="5" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Assigned}" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="Выдано" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="Orange" Padding="10" CornerRadius="5" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="{Binding UnderRepair}" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="На ремонте" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="Red" Padding="10" CornerRadius="5" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Missing}" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="Отсутствует" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="Gray" Padding="10" CornerRadius="5" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="{Binding OverdueInventory}" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="Просрочено" />
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+            </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Оборудование">
+            <ScrollViewer Margin="10">
+                <!--
+            <DataGrid ItemsSource="{Binding Equipments}" AutoGenerateColumns="False" Margin="10">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" />
+                    <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Категория" Binding="{Binding Category}" />
+                    <DataGridTextColumn Header="Стоимость" Binding="{Binding Cost}" />
+                    <DataGridTextColumn Header="Статус" Binding="{Binding Status}" />
+                </DataGrid.Columns>
+            </DataGrid>
+            
+            <DataGridTemplateColumn  Header="ID">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Id}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn  Header="Наименование">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Name }"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Категория">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Category}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                    <DataGridTemplateColumn Header="Стоимость">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Cost}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                    <DataGridTemplateColumn Header="Статус">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Status}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+            -->
+
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                        <TextBlock Text="ID" Width="50" FontWeight="Bold" />
+                        <TextBlock Text="Наименование" Width="150" FontWeight="Bold" />
+                        <TextBlock Text="Категория" Width="150" FontWeight="Bold" />
+                        <TextBlock Text="Стоимость" Width="150" FontWeight="Bold" />
+                        <TextBlock Text="Статус" Width="150" FontWeight="Bold" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding Equipments}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <Border BorderBrush="Gray" BorderThickness="1" Padding="5" Margin="2" CornerRadius="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding Id}" Width="50" />
+                                        <TextBlock Text="{Binding Name}" Width="150" />
+                                        <TextBlock Text="{Binding Category}" Width="150" />
+                                        <TextBlock Text="{Binding Cost}" Width="150" />
+                                        <TextBlock Text="{Binding Status}" Width="150" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Назначения">
+            <StackPanel Margin="10" Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <ComboBox ItemsSource="{Binding Employees}" SelectedItem="{Binding SelectedEmployee}" Width="200">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:EmployeeDropdown">
+                                <TextBlock Text="{Binding FullName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <ComboBox ItemsSource="{Binding AvailableEquipment}" SelectedItem="{Binding SelectedEquipment}"
+                              Width="200" Margin="10,0,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBox Width="200" Watermark="Причина" Text="{Binding Reason, Mode=TwoWay}" />
+
+                    <Button Content="Выдать" Command="{Binding AssignCommand}" Margin="10,0,0,0" />
+                </StackPanel>
+            </StackPanel>
+        </TabItem>
+
+        <TabItem Header="Отчёты">
+            <ScrollViewer Margin="10">
+                <!--
+            <DataGrid ItemsSource="{Binding Summary}" AutoGenerateColumns="False" Margin="10">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID сотрудника" Binding="{Binding EmployeeId}" />
+                    <DataGridTextColumn Header="Всего записей" Binding="{Binding TotalRecords}" />
+                    <DataGridTextColumn Header="Отсутствует" Binding="{Binding MissingCount}" />
+                    <DataGridTextColumn Header="Последняя инвентаризация"
+                                        Binding="{Binding LastInventory, StringFormat=dd.MM.yyyy}" />
+                </DataGrid.Columns>
+            </DataGrid>
+            
+            ataGrid.Columns>
+                    <DataGridTemplateColumn Header="ID сотрудника">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
+                                <TextBlock Text="{Binding EmployeeId}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                    <DataGridTemplateColumn Header="Всего записей">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
+                                <TextBlock Text="{Binding TotalRecords}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                    <DataGridTemplateColumn Header="Отсутсвует">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
+                                <TextBlock Text="{Binding MissingCount}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                    <DataGridTemplateColumn Header="Последняя инвентаризация">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
+                                <TextBlock Text="{Binding LastInventory, StringFormat=dd.MM.yyyy}"></TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn >
+                </DataGrid.Columns>
+            -->
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                        <TextBlock Text="ID сотрудника" Width="50" FontWeight="Bold" />
+                        <TextBlock Text="Всего записей" Width="150" FontWeight="Bold" />
+                        <TextBlock Text="Отсутствует" Width="150" FontWeight="Bold" />
+                        <TextBlock Text="Последняя инвентаризация" Width="220" FontWeight="Bold" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding Summary}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
+                                <Border BorderBrush="Gray" BorderThickness="1" Padding="5" Margin="2" CornerRadius="3">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding EmployeeId}" Width="50" />
+                                        <TextBlock Text="{Binding TotalRecords}" Width="150" />
+                                        <TextBlock Text="{Binding MissingCount}" Width="150" />
+                                        <TextBlock Text="{Binding LastInventory, StringFormat=dd.MM.yyyy}" Width="150" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+
+</Window>

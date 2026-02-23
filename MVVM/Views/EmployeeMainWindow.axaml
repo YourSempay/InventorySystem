@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        xmlns:equipment="clr-namespace:MVVM.Models.Dto.Equipment"
+        xmlns:dashboard="clr-namespace:MVVM.Models.Dto.DashBoard"
+        mc:Ignorable="d"
+        x:Class="MVVM.Views.EmployeeMainWindow"
+        Title="Сотрудник"
+        Width="900" Height="600"
+        x:Name="Window"
+        x:DataType="vm:EmployeeViewModel">
+
+    <TabControl>
+        <TabItem Header="Моё оборудование">
+            <StackPanel Margin="10">
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                    <TextBlock Text="Id" Width="50" FontWeight="Bold"/>
+                    <TextBlock Text="Наименование" Width="200" FontWeight="Bold"/>
+                    <TextBlock Text="Статус" Width="100" FontWeight="Bold"/>
+                    <TextBlock Text="Категория" Width="150" FontWeight="Bold"/>
+                    <TextBlock Text="Стоимость" Width="100" FontWeight="Bold"/>
+                </StackPanel>
+
+                <ListBox x:Name="EquipmentList" ItemsSource="{Binding MyEquipments}" SelectedItem="{Binding SelectedEquipment}" >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="equipment:EquipmentShortResponse">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding Id}" Width="50"/>
+                                <TextBlock Text="{Binding Name}" Width="200"/>
+                                <TextBlock Text="{Binding Status}" Width="100"/>
+                                <TextBlock Text="{Binding Category}" Width="150"/>
+                                <TextBlock Text="{Binding Cost, StringFormat=C}" Width="100"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Button Content="Провести инвентаризацию"
+                        Width="150"
+                        IsEnabled="{Binding CanStartInventory}"
+                        Command="{Binding StartInventoryAsync}"
+                        CommandParameter="{Binding SelectedEquipment}"
+                        Margin="0, 10, 0,0"/>
+            </StackPanel>
+        </TabItem>
+
+        <TabItem Header="История">
+            <ScrollViewer Margin="10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                        <TextBlock Text="Дата следующей инвентаризации" Width="200" FontWeight="Bold"/>
+                        <TextBlock Text="Дней до инвентаризации" Width="150" FontWeight="Bold"/>
+                        <TextBlock Text="Присутствует" Width="100" FontWeight="Bold"/>
+
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding InventoryHistory}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="dashboard:NextInventoryInfo">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding NextInventoryDate, StringFormat=dd.MM.yyyy}" Width="200"/>
+                                    <TextBlock Text="{Binding DaysLeft}" Width="150"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</Window>

@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        mc:Ignorable="d"
+        x:Class="MVVM.Views.LoginView"
+        x:DataType="vm:LoginViewModel"
+        Title="LoginView"
+        Width="500" Height="400">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*" Margin="20">
+        <TextBlock Text="Логин" Grid.Row="0" FontSize="16" />
+        <TextBox Grid.Row="1" Text="{Binding Username, Mode=TwoWay}" Width="200" />
+
+        <TextBlock Text="Пароль" Grid.Row="2" FontSize="16" Margin="0,10,0,0" />
+        <TextBox Grid.Row="3" Width="200" Watermark="Пароль" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" />
+
+        <Button Content="Войти" Grid.Row="4" Margin="0,20,0,0" Width="100" Command="{Binding LoginCommand}" />
+        <ProgressBar IsVisible="{Binding IsLoading}" IsIndeterminate="True" Grid.Row="5" Height="5" Margin="0,10,0,0" />
+        
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Grid.Row="6" Margin="0,10,0,0"/>
+    </Grid>
+</Window>

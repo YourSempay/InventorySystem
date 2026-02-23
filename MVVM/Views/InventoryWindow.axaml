@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        mc:Ignorable="d"
+        x:Class="MVVM.Views.InventoryWindow"
+        Title="Инвентаризация"
+        Width="450" Height="400"
+        WindowStartupLocation="CenterOwner"
+        x:DataType="vm:EmployeeViewModel">
+
+    <StackPanel Margin="10" Spacing="10">
+        <TextBlock Text="Состояние оборудования:"/>
+        <ComboBox ItemsSource="{Binding InventoryStates}" SelectedItem="{Binding SelectedInventoryState}" Width="200"/>
+
+        <CheckBox Content="Присутствует" IsChecked="{Binding CurrentInventory.IsPresent}"/>
+
+        <TextBlock Text="Местоположение:"/>
+        <TextBox Text="{Binding CurrentInventory.Location}" Width="300"/>
+
+        <TextBlock Text="Комментарий:"/>
+        <TextBox Text="{Binding CurrentInventory.Comments}" AcceptsReturn="True" Height="80" Width="400"/>
+
+        <Button Content="Прикрепить фото" Command="{Binding AttachPhotoCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Width="150"/>
+        <TextBlock Text="{Binding CurrentInventory.FileName}" FontStyle="Italic"/>
+
+        <Button Content="Сохранить"
+                Command="{Binding SaveInventoryCommand}"
+                IsEnabled="{Binding CanSaveInventory}"
+                Width="200"/>
+    </StackPanel>
+</Window>
