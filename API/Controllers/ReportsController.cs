@@ -55,18 +55,20 @@ public class ReportsController : Controller
     }
 
     [HttpGet("missing-equipment")]
-    public async Task<ActionResult<List<MissingEquipmentResponse>>> GetMissingEquipment([FromQuery] bool? includeResolved = false)
+    public async Task<ActionResult<List<MissingEquipmentResponse>>> GetMissingEquipment(
+        [FromQuery] bool? includeResolved = false)
     {
         bool includeMissingFromSettings = await settings.GetSettingValueAsBoolAsync("IncludeMissingEquipment");
-    
+
         bool includeResolvedFinal = includeResolved ?? includeMissingFromSettings;
-        
+
         List<Inventoryrecord> records;
 
         if (!includeResolvedFinal)
         {
             records = await db.Inventoryrecords.Where(r => r.InventoryDate == db.Inventoryrecords
-                .Where(x => x.EquipmentId == r.EquipmentId).Max(x => x.InventoryDate)).Where(r => !r.IsPresent).ToListAsync();
+                    .Where(x => x.EquipmentId == r.EquipmentId).Max(x => x.InventoryDate)).Where(r => !r.IsPresent)
+                .ToListAsync();
         }
         else
         {
@@ -131,183 +133,257 @@ public class ReportsController : Controller
     public async Task<ActionResult> ExportReport([FromBody] ExportReportRequest request)
     {
         var reportData = await GetInventorySummaryAsync(request.EmployeeId, request.StartDate, request.EndDate);
-        
+
         var defaultFormat = await settings.GetSettingValueAsync("DefaultReportFormat");
         if (string.IsNullOrEmpty(request.Type))
             request.Type = defaultFormat;
-        
+
         if (request.Type == "PDF")
-        {
-            var document = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
-                    page.DefaultTextStyle(x => x.FontSize(10));
+            return GeneratePdf(reportData, request);
 
-                    page.Header().Element(c => ComposeHeader(c, request, reportData));
-                    page.Content().Element(c => ComposeContent(c, reportData));
-                    page.Footer().AlignCenter().Text(text =>
+        if (request.Type == "Excel")
+            return GenerateExcel(reportData, request);
+
+        return BadRequest("Поддерживаемые типы: PDF, Excel");
+    }
+
+    private ActionResult GeneratePdf(InventoryReportResponse data, ExportReportRequest request)
+    {
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(25);
+                page.DefaultTextStyle(x => x.FontSize(10));
+
+                page.Header().Element(c => PdfHeader(c, request, data));
+                page.Content().Element(c => PdfContent(c, data));
+                page.Footer().AlignCenter().Text(t =>
+                {
+                    t.Span("Страница ");
+                    t.CurrentPageNumber();
+                    t.Span(" / ");
+                    t.TotalPages();
+                });
+            });
+        });
+
+        using var stream = new MemoryStream();
+        document.GeneratePdf(stream);
+
+        return File(stream.ToArray(), "application/pdf", $"InventoryReport_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf");
+    }
+
+    private void PdfHeader(IContainer container, ExportReportRequest request, InventoryReportResponse data)
+    {
+        container.Column(col =>
+        {
+            col.Item().Text("ОТЧЁТ ПО ИНВЕНТАРИЗАЦИИ").FontSize(18).Bold().FontColor(Colors.Blue.Darken2);
+            col.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+            col.Item().Text($"Период: {request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy}");
+            col.Item().Text($"Сотрудник: {data.EmployeeName}");
+        });
+    }
+
+    private void PdfContent(IContainer container, InventoryReportResponse data)
+    {
+        container.Background(Colors.Grey.Darken4).Padding(20).Column(col =>
+        {
+            col.Item().Row(row =>
+            {
+                row.ConstantItem(150).Background(Colors.Purple.Medium).Padding(10).Column(c =>
+                {
+                    c.Item().Text("ИНВЕНТАРИЗАЦИЯ").FontSize(18).Bold().FontColor(Colors.White);
+                    c.Item().Text(data.EmployeeName).FontSize(10).FontColor(Colors.White);
+                });
+
+                row.RelativeItem().PaddingLeft(10).Column(c =>
+                {
+                    c.Item().Row(summaryRow =>
                     {
-                        text.Span("Страница ");
-                        text.CurrentPageNumber();
-                        text.Span(" из ");
-                        text.TotalPages();
+                        summaryRow.RelativeItem()
+                            .Component(new NeonSummaryCard(data.TotalEquipment, "Всего", Colors.Cyan.Medium));
+                        summaryRow.RelativeItem()
+                            .Component(new NeonSummaryCard(data.InventoriedCount, "В наличии", Colors.Lime.Medium));
+                        summaryRow.RelativeItem()
+                            .Component(new NeonSummaryCard(data.MissingCount, "Отсутствует", Colors.Red.Medium));
                     });
+
+                    c.Item().PaddingTop(20).Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.ConstantColumn(90);
+                            columns.ConstantColumn(80);
+                            columns.ConstantColumn(90);
+                        });
+
+                        table.Header(header =>
+                        {
+                            Color[] colors =
+                            {
+                                Colors.Purple.Medium, Colors.Cyan.Medium, Colors.Lime.Medium, Colors.Orange.Medium,
+                                Colors.Pink.Medium
+                            };
+                            string[] titles = { "Инв. номер", "Наименование", "Состояние", "Наличие", "Дата" };
+                            for (int i = 0; i < titles.Length; i++)
+                            {
+                                header.Cell().Background(colors[i]).Padding(5).Text(titles[i]).FontColor(Colors.White)
+                                    .Bold();
+                            }
+                        });
+
+                        int index = 0;
+                        foreach (var item in data.Details)
+                        {
+                            var bg = index % 2 == 0 ? Colors.Grey.Darken3 : Colors.Grey.Darken2;
+
+                            table.Cell().Element(c => c.Background(bg).Padding(5)).Text(item.InventoryNumber);
+                            table.Cell().Element(c => c.Background(bg).Padding(5)).Text(item.EquipmentName);
+                            table.Cell().Element(c => c.Background(bg).Padding(5)).Text(item.EquipmentCondition);
+                            table.Cell().Element(c => c.Background(bg).Padding(5))
+                                .Text(item.IsPresent ? "Да" : "Нет")
+                                .FontColor(item.IsPresent ? Colors.Lime.Medium : Colors.Red.Medium);
+                            table.Cell().Element(c => c.Background(bg).Padding(5))
+                                .Text(item.InventoryDate.ToString("dd.MM.yyyy"));
+
+                            index++;
+                        }
+                    });
+
+                    c.Item().AlignRight().Text($"Сформировано: {DateTime.UtcNow:dd.MM.yyyy HH:mm}")
+                        .FontSize(9).FontColor(Colors.Grey.Lighten2);
                 });
-            });
-
-            using var stream = new MemoryStream();
-            document.GeneratePdf(stream);
-            stream.Position = 0;
-            var fileName = $"InventoryReport_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf";
-            return File(stream.ToArray(), "application/pdf", fileName);
-        }
-        else if (request.Type == "Excel")
-        {
-            using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Инвентаризация");
-
-            ws.Cell(1, 1).Value = "ОТЧЁТ ПО ИНВЕНТАРИЗАЦИИ ОБОРУДОВАНИЯ";
-            var range = ws.Range(1, 1, 1, 7);
-            range.Merge();
-            range.Style.Font.Bold = true;
-            range.Style.Font.FontSize = 12;
-            range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            range.Style.Fill.BackgroundColor = XLColor.FromArgb(42, 113, 192);
-
-            ws.Cell(2, 1).Value = $"Период: {request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy}";
-            if (request.EmployeeId.HasValue)
-                ws.Cell(3, 1).Value = $"Сотрудник: {reportData.EmployeeName}";
-
-            var headers = new[]
-            {
-                "Инв. номер", "Наименование", "Категория", "Состояние", "Присутствует", "Дата инвентаризации",
-                "Местоположение"
-            };
-            for (int i = 0; i < headers.Length; i++)
-            {
-                ws.Cell(5, i + 1).Value = headers[i];
-                ws.Cell(5, i + 1).Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.LightGray).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-            }
-
-            int row = 6;
-            foreach (var item in reportData.Details)
-            {
-                ws.Cell(row, 1).Value = item.InventoryNumber;
-                ws.Cell(row, 2).Value = item.EquipmentName;
-                ws.Cell(row, 3).Value = item.Category;
-                ws.Cell(row, 4).Value = item.EquipmentCondition;
-
-                var presentCell = ws.Cell(row, 5);
-                presentCell.Value = item.IsPresent ? "Да" : "НЕТ";
-                presentCell.Style.Font.SetBold();
-                presentCell.Style.Font.FontColor = item.IsPresent ? XLColor.Green : XLColor.Red;
-
-                ws.Cell(row, 6).Value = item.InventoryDate;
-                ws.Cell(row, 6).Style.DateFormat.Format = "dd.MM.yyyy";
-                ws.Cell(row, 7).Value = item.Location;
-                row++;
-            }
-
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-            var fileName = $"InventoryReport_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
-        else
-        {
-            return BadRequest("Поддерживаемые типы: PDF, Excel");
-        }
-    }
-
-
-    private void ComposeHeader(IContainer container, ExportReportRequest request, InventoryReportResponse reportData)
-    {
-        container.Row(row =>
-        {
-            row.RelativeItem().Column(col =>
-            {
-                col.Item().Text("СИСТЕМА ИНВЕНТАРИЗАЦИОННОГО УЧЁТА").FontSize(16).Bold();
-                col.Item().Text($"Период: {request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy}").FontSize(10).FontColor(Colors.Grey.Medium);
-                if (request.EmployeeId.HasValue)
-                    col.Item().Text($"Сотрудник: {reportData.EmployeeName}").FontSize(10);
             });
         });
     }
 
-    private void ComposeContent(IContainer container, InventoryReportResponse reportData)
+    internal class NeonSummaryCard : IComponent
     {
-        container.PaddingVertical(10).Column(col =>
+        private readonly int value;
+        private readonly string label;
+        private readonly Color color;
+
+        public NeonSummaryCard(int value, string label, Color color)
         {
-            col.Item().Component(new SummaryBox(reportData.TotalEquipment, "Всего историй оборудования"));
-            col.Item().Component(new SummaryBox(reportData.InventoriedCount, "Присутсвует"));
-            col.Item().Component(new SummaryBox(reportData.MissingCount, "Отсутствует", true));
-
-            col.Item().PaddingTop(15).Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.ConstantColumn(100);
-                    columns.ConstantColumn(80);
-                    columns.ConstantColumn(100);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(CellStyle).Text("Инв. номер").Bold();
-                    header.Cell().Element(CellStyle).Text("Наименование").Bold();
-                    header.Cell().Element(CellStyle).Text("Состояние").Bold();
-                    header.Cell().Element(CellStyle).Text("Присутствует").Bold();
-                    header.Cell().Element(CellStyle).Text("Дата").Bold();
-                });
-
-                foreach (var item in reportData.Details)
-                {
-                    table.Cell().Element(CellStyle).Text(item.InventoryNumber);
-                    table.Cell().Element(CellStyle).Text(item.EquipmentName);
-                    table.Cell().Element(CellStyle).Text(item.EquipmentCondition).FontColor(item.EquipmentCondition == "Unusable" ? Colors.Red.Medium : Colors.Black);
-                    table.Cell().Element(CellStyle).Text(item.IsPresent ? "Да" : "Нет").FontColor(item.IsPresent ? Colors.Green.Medium : Colors.Red.Medium);
-                    table.Cell().Element(CellStyle).Text(item.InventoryDate.ToString("dd.MM.yyyy"));
-                }
-            });
-
-            col.Item().PaddingTop(20).AlignRight().Text($"Сформировано: {DateTime.UtcNow:dd.MM.yyyy HH:mm}")
-                .FontSize(9).FontColor(Colors.Grey.Medium);
-        });
-    }
-
-    private static IContainer CellStyle(IContainer container) => container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).AlignCenter();
-
-    internal class SummaryBox : IComponent
-    {
-        private readonly int _value;
-        private readonly string _label;
-        private readonly bool _isCritical;
-
-        public SummaryBox(int value, string label, bool isCritical = false)
-        {
-            _value = value;
-            _label = label;
-            _isCritical = isCritical;
+            this.value = value;
+            this.label = label;
+            this.color = color;
         }
 
         public void Compose(IContainer container)
         {
-            container.Border(1).BorderColor(_isCritical ? Colors.Red.Medium : Colors.Blue.Medium).Background(_isCritical ? Colors.Red.Lighten4 : Colors.Blue.Lighten4)
-                .Padding(8).Width(150).Column(col =>
+            container.Border(1)
+                .BorderColor(color)
+                .Background(Colors.Black)
+                .Padding(10)
+                .Column(col =>
                 {
-                    col.Item().Text(_value.ToString()).FontSize(24).Bold()
-                        .FontColor(_isCritical ? Colors.Red.Medium : Colors.Blue.Medium);
-                    col.Item().Text(_label).FontSize(10).FontColor(Colors.Black);
+                    col.Item().Text(value.ToString()).FontSize(24).Bold().FontColor(color);
+                    col.Item().Text(label).FontSize(12).FontColor(Colors.White);
                 });
         }
+    }
+
+    private static IContainer HeaderStyle(IContainer container) =>
+        container.Background(Colors.Blue.Medium).Padding(5).AlignCenter()
+            .DefaultTextStyle(x => x.FontColor(Colors.White).Bold());
+
+    private static IContainer CellStyle(IContainer container, string bgColor) =>
+        container.Background(bgColor).Padding(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignCenter();
+
+    internal class SummaryCard : IComponent
+    {
+        private readonly int value;
+        private readonly string label;
+        private readonly bool critical;
+
+        public SummaryCard(int value, string label, bool critical = false)
+        {
+            this.value = value;
+            this.label = label;
+            this.critical = critical;
+        }
+
+        public void Compose(IContainer container)
+        {
+            container.Border(1)
+                .BorderColor(critical ? Colors.Red.Medium : Colors.Blue.Medium)
+                .Background(critical ? Colors.Red.Lighten4 : Colors.Blue.Lighten4)
+                .Padding(10)
+                .Column(col =>
+                {
+                    col.Item().Text(value.ToString()).FontSize(22).Bold()
+                        .FontColor(critical ? Colors.Red.Medium : Colors.Blue.Medium);
+                    col.Item().Text(label);
+                });
+        }
+    }
+
+
+    private ActionResult GenerateExcel(InventoryReportResponse data, ExportReportRequest request)
+    {
+        using var workbook = new XLWorkbook();
+        var ws = workbook.Worksheets.Add("Отчёт");
+
+        ws.Cell("A1").Value = "ОТЧЁТ ПО ИНВЕНТАРИЗАЦИИ";
+        ws.Cell("A1").Style.Font.Bold = true;
+        ws.Cell("A1").Style.Font.FontSize = 16;
+
+        ws.Cell("E1").Value = "Период:";
+        ws.Cell("F1").Value = $"{request.StartDate:dd.MM.yyyy} - {request.EndDate:dd.MM.yyyy}";
+        ws.Cell("E2").Value = "Сотрудник:";
+        ws.Cell("F2").Value = data.EmployeeName;
+
+        string[] headers = { "Инв. номер", "Наименование", "Категория", "Состояние", "Наличие", "Дата", "Локация" };
+
+        for (int i = 0; i < headers.Length; i++)
+        {
+            var cell = ws.Cell(4, i + 1);
+            cell.Value = headers[i];
+            cell.Style.Fill.BackgroundColor = XLColor.FromArgb(30, 58, 138);
+            cell.Style.Font.FontColor = XLColor.White;
+            cell.Style.Font.Bold = true;
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        }
+
+        int row = 5;
+        bool alternate = false;
+
+        foreach (var item in data.Details)
+        {
+            if (alternate) ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromArgb(243, 244, 246);
+
+            ws.Cell(row, 1).Value = item.InventoryNumber;
+            ws.Cell(row, 2).Value = item.EquipmentName;
+            ws.Cell(row, 3).Value = item.Category;
+            ws.Cell(row, 4).Value = item.EquipmentCondition;
+
+            var presence = ws.Cell(row, 5);
+            presence.Value = item.IsPresent ? "Да" : "Нет";
+            presence.Style.Font.Bold = true;
+            presence.Style.Font.FontColor = item.IsPresent ? XLColor.DarkGreen : XLColor.DarkRed;
+
+            ws.Cell(row, 6).Value = item.InventoryDate;
+            ws.Cell(row, 6).Style.DateFormat.Format = "dd.MM.yyyy";
+
+            ws.Cell(row, 7).Value = item.Location;
+
+            alternate = !alternate;
+            row++;
+        }
+
+        ws.Range(4, 1, row - 1, headers.Length).SetAutoFilter();
+        ws.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"InventoryReport_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx");
     }
 
     private async Task<InventoryReportResponse> GetInventorySummaryAsync(int? employeeId, DateTime startDate,

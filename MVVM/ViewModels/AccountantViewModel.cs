@@ -67,6 +67,7 @@ public class AccountantViewModel : BaseVM
         set => SetField(ref _reason, value);
     }
 
+    public ObservableCollection<DashboardItem> DashboardItems { get; } = new();
     public ObservableCollection<EquipmentShortResponse> Equipments { get; } = new();
     public ObservableCollection<EmployeeDropdown> Employees { get; } = new();
     public ObservableCollection<EquipmentShortResponse> AvailableEquipment { get; } = new();
@@ -117,6 +118,14 @@ public class AccountantViewModel : BaseVM
             UnderRepair = response.UnderRepair;
             Missing = response.Missing;
             OverdueInventory = response.OverdueInventory;
+            
+            
+            DashboardItems.Clear();
+            DashboardItems.Add(new DashboardItem { Label = "Доступно", Value = Available, Background="LightGreen", Foreground="#4B3F2F" });
+            DashboardItems.Add(new DashboardItem { Label = "Выдано", Value = Assigned, Background="LightBlue", Foreground="#4B3F2F" });
+            DashboardItems.Add(new DashboardItem { Label = "На ремонте", Value = UnderRepair, Background="Orange", Foreground="#4B3F2F" });
+            DashboardItems.Add(new DashboardItem { Label = "Отсутствует", Value = Missing, Background="Red", Foreground="#4B3F2F" });
+            DashboardItems.Add(new DashboardItem { Label = "Просрочено", Value = OverdueInventory, Background="Gray", Foreground="#4B3F2F" });
         }
     }
 
@@ -180,9 +189,16 @@ public class AccountantViewModel : BaseVM
         };
 
         await apiService.PostAsync("assignments", request);
-        Reason = string.Empty; // очистка
+        Reason = string.Empty; 
         SelectedEmployee = null;
         SelectedEquipment = null;
         await LoadAssignments();
     }
+}
+public class DashboardItem
+{
+    public string Label { get; set; } = "";
+    public int Value { get; set; }
+    public string Background { get; set; } = "#FFF8F0";
+    public string Foreground { get; set; } = "#4B3F2F";
 }

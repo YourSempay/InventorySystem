@@ -1,29 +1,26 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:MVVM.ViewModels"
         xmlns:equipment="clr-namespace:MVVM.Models.Dto.Equipment"
         xmlns:dashboard="clr-namespace:MVVM.Models.Dto.DashBoard"
-        mc:Ignorable="d"
         x:Class="MVVM.Views.EmployeeMainWindow"
+        x:DataType="vm:EmployeeViewModel"
         Title="Сотрудник"
         Width="900" Height="600"
-        x:Name="Window"
-        x:DataType="vm:EmployeeViewModel">
+        Background="#F3E8FF">
 
     <TabControl>
-        <TabItem Header="Моё оборудование">
-            <StackPanel Margin="10">
-                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
-                    <TextBlock Text="Id" Width="50" FontWeight="Bold"/>
-                    <TextBlock Text="Наименование" Width="200" FontWeight="Bold"/>
-                    <TextBlock Text="Статус" Width="100" FontWeight="Bold"/>
-                    <TextBlock Text="Категория" Width="150" FontWeight="Bold"/>
-                    <TextBlock Text="Стоимость" Width="100" FontWeight="Bold"/>
+        <TabItem Header="Моё оборудование" Foreground="Black">
+            <StackPanel Margin="15" Spacing="10" >
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Id" Width="50" FontWeight="Bold" Foreground="Black"/>
+                    <TextBlock Text="Наименование" Width="200" FontWeight="Bold" Foreground="Black"/>
+                    <TextBlock Text="Статус" Width="100" FontWeight="Bold" Foreground="Black"/>
+                    <TextBlock Text="Категория" Width="150" FontWeight="Bold" Foreground="Black"/>
+                    <TextBlock Text="Стоимость" Width="100" FontWeight="Bold" Foreground="Black"/>
                 </StackPanel>
 
-                <ListBox x:Name="EquipmentList" ItemsSource="{Binding MyEquipments}" SelectedItem="{Binding SelectedEquipment}" >
+                <ListBox x:Name="EquipmentList" ItemsSource="{Binding MyEquipments}" SelectedItem="{Binding SelectedEquipment}">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="equipment:EquipmentShortResponse">
                             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -37,23 +34,24 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <Button Content="Провести инвентаризацию"
-                        Width="150"
-                        IsEnabled="{Binding CanStartInventory}"
-                        Command="{Binding StartInventoryAsync}"
-                        CommandParameter="{Binding SelectedEquipment}"
-                        Margin="0, 10, 0,0"/>
+                <Button Content="Провести инвентаризацию" Width="180" Height="40"
+                        IsEnabled="{Binding CanStartInventory}" Command="{Binding StartInventoryAsync}" CommandParameter="{Binding SelectedEquipment}" Margin="0,10,0,0"
+                        Background="#7B3F00" Foreground="White" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="6">
+                    <Button.Styles>
+                        <Style Selector="Button:hover">
+                            <Setter Property="Background" Value="#5C2E00"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
             </StackPanel>
         </TabItem>
 
-        <TabItem Header="История">
-            <ScrollViewer Margin="10">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-                        <TextBlock Text="Дата следующей инвентаризации" Width="200" FontWeight="Bold"/>
-                        <TextBlock Text="Дней до инвентаризации" Width="150" FontWeight="Bold"/>
-                        <TextBlock Text="Присутствует" Width="100" FontWeight="Bold"/>
-
+        <TabItem Header="История" Foreground="Black">
+            <ScrollViewer Margin="15">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Дата следующей инвентаризации" Width="200" FontWeight="Bold" Foreground="Black"/>
+                        <TextBlock Text="Дней до инвентаризации" Width="150" FontWeight="Bold" Foreground="Black"/>
                     </StackPanel>
 
                     <ListBox ItemsSource="{Binding InventoryHistory}">

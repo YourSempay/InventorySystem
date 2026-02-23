@@ -1,33 +1,43 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:MVVM.ViewModels"
-        mc:Ignorable="d"
         x:Class="MVVM.Views.InventoryWindow"
+        x:DataType="vm:EmployeeViewModel"
         Title="Инвентаризация"
         Width="450" Height="400"
-        WindowStartupLocation="CenterOwner"
-        x:DataType="vm:EmployeeViewModel">
+        Background="#6B5CA8"
+        WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="10" Spacing="10">
-        <TextBlock Text="Состояние оборудования:"/>
+    <StackPanel Margin="15" Spacing="10">
+        <TextBlock Text="Состояние оборудования:" Foreground="#FFF8F0"/>
         <ComboBox ItemsSource="{Binding InventoryStates}" SelectedItem="{Binding SelectedInventoryState}" Width="200"/>
 
-        <CheckBox Content="Присутствует" IsChecked="{Binding CurrentInventory.IsPresent}"/>
+        <CheckBox Content="Присутствует" IsChecked="{Binding CurrentInventory.IsPresent}" Foreground="#FFF8F0"/>
 
-        <TextBlock Text="Местоположение:"/>
-        <TextBox Text="{Binding CurrentInventory.Location}" Width="300"/>
+        <TextBlock Text="Местоположение:" Foreground="#FFF8F0"/>
+        <TextBox Text="{Binding CurrentInventory.Location}" Width="300"
+                 Background="#FFF8F0" Foreground="#4B3F2F" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="5" CaretBrush="#4B3F2F"/>
 
-        <TextBlock Text="Комментарий:"/>
-        <TextBox Text="{Binding CurrentInventory.Comments}" AcceptsReturn="True" Height="80" Width="400"/>
+        <TextBlock Text="Комментарий:" Foreground="#FFF8F0"/>
+        <TextBox Text="{Binding CurrentInventory.Comments}" AcceptsReturn="True" Height="80" Width="400"
+                 Background="#FFF8F0" Foreground="#4B3F2F" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="5" CaretBrush="#4B3F2F"/>
 
-        <Button Content="Прикрепить фото" Command="{Binding AttachPhotoCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Width="150"/>
-        <TextBlock Text="{Binding CurrentInventory.FileName}" FontStyle="Italic"/>
+        <Button Content="Прикрепить фото" Command="{Binding AttachPhotoCommand}" Width="150"  CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                Background="#7B3F00" Foreground="White" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="8">
+            <Button.Styles>
+                <Style Selector="Button:hover">
+                    <Setter Property="Background" Value="#5C2E00"/>
+                </Style>
+            </Button.Styles>
+        </Button>
 
-        <Button Content="Сохранить"
-                Command="{Binding SaveInventoryCommand}"
-                IsEnabled="{Binding CanSaveInventory}"
-                Width="200"/>
+        <Button Content="Сохранить" Command="{Binding SaveInventoryCommand}" Width="200"
+                Background="#7B3F00" Foreground="White" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="8">
+            <Button.Styles>
+                <Style Selector="Button:hover">
+                    <Setter Property="Background" Value="#5C2E00"/>
+                </Style>
+            </Button.Styles>
+        </Button>
     </StackPanel>
 </Window>

@@ -21,7 +21,7 @@ public class ApiService
 
         client = new HttpClient
         {
-            BaseAddress = new Uri("http://localhost:5160/api/")
+            BaseAddress = new Uri("http://localhost:5090/api/")
         };
     }
 
@@ -39,7 +39,7 @@ public class ApiService
     private void CheckTokenExpiration()
     {
         if (!auth.IsAuthenticated)
-            throw new UnauthorizedAccessException("User is not authenticated.");
+            throw new UnauthorizedAccessException("");
     }
 
     private async Task HandleResponseErrors(HttpResponseMessage response)
@@ -47,7 +47,7 @@ public class ApiService
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             auth.Logout();
-            throw new UnauthorizedAccessException("Session expired. Please login again.");
+            throw new UnauthorizedAccessException("");
         }
 
         if (!response.IsSuccessStatusCode)

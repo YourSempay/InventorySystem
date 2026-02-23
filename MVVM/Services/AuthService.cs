@@ -46,25 +46,4 @@ public class AuthService
         FullName = null;
     }
 
-    public async Task<bool> ValidateAsync()
-    {
-        try
-        {
-            var result = await apiService.GetAsync<object>("auth/validate");
-            return result != null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task ChangePasswordAsync(string oldPassword, string newPassword)
-    {
-        await apiService.PostAsync("auth/change-password", new ChangePasswordRequest
-        {
-            OldPassword = oldPassword,
-            NewPassword = newPassword
-        });
-    }
 }

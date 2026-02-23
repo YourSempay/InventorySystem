@@ -1,23 +1,69 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:MVVM.ViewModels"
-        mc:Ignorable="d"
         x:Class="MVVM.Views.LoginView"
         x:DataType="vm:LoginViewModel"
         Title="LoginView"
-        Width="500" Height="400">
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*" Margin="20">
-        <TextBlock Text="Логин" Grid.Row="0" FontSize="16" />
-        <TextBox Grid.Row="1" Text="{Binding Username, Mode=TwoWay}" Width="200" />
+        Width="500" Height="400"
+        Background="#C6B6E2"> 
 
-        <TextBlock Text="Пароль" Grid.Row="2" FontSize="16" Margin="0,10,0,0" />
-        <TextBox Grid.Row="3" Width="200" Watermark="Пароль" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" />
+    <Grid RowDefinitions="*,Auto,Auto,*" ColumnDefinitions="*">
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
 
-        <Button Content="Войти" Grid.Row="4" Margin="0,20,0,0" Width="100" Command="{Binding LoginCommand}" />
-        <ProgressBar IsVisible="{Binding IsLoading}" IsIndeterminate="True" Grid.Row="5" Height="5" Margin="0,10,0,0" />
-        
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" Grid.Row="6" Margin="0,10,0,0"/>
+            <TextBlock Text="Логин" FontSize="18" FontWeight="Bold" Foreground="#FFF8F0" HorizontalAlignment="Left"/>
+
+            <TextBox Width="250" Text="{Binding Username, Mode=TwoWay}" 
+                     Background="#FFF8F0" Foreground="#4B3F2F" 
+                     BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="5"
+                     CaretBrush="#4B3F2F">
+                <TextBox.Styles>
+                    <Style Selector="TextBox:focus">
+                        <Setter Property="Background" Value="#FFF8F0"/>
+                        <Setter Property="Foreground" Value="#4B3F2F"/>
+                    </Style>
+                </TextBox.Styles>
+            </TextBox>
+
+            <TextBlock Text="Пароль" FontSize="18" FontWeight="Bold" Foreground="#FFF8F0" HorizontalAlignment="Left"/>
+
+            <TextBox Width="250" Watermark="Пароль" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●"
+                     Background="#FFF8F0" Foreground="#4B3F2F" 
+                     BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="5"
+                     CaretBrush="#4B3F2F">
+                <TextBox.Styles>
+                    <Style Selector="TextBox:focus">
+                        <Setter Property="Background" Value="#FFF8F0"/>
+                        <Setter Property="Foreground" Value="#4B3F2F"/>
+                    </Style>
+                </TextBox.Styles>
+            </TextBox>
+
+            <Button Width="150" Height="40" Content="Войти" Command="{Binding LoginCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}" 
+                                              Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Button.Background>
+                    <SolidColorBrush Color="#7B3F00"/>
+                </Button.Background>
+                <Button.Foreground>
+                    <SolidColorBrush Color="White"/>
+                </Button.Foreground>
+                <Button.BorderBrush>
+                    <SolidColorBrush Color="#5C2E00"/>
+                </Button.BorderBrush>
+            </Button>
+
+            <ProgressBar IsVisible="{Binding IsLoading}" IsIndeterminate="True" Width="250" Height="6" Foreground="#D2B48C"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </Window>
