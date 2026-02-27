@@ -152,5 +152,15 @@ public class ApiService
         return await response.Content.ReadFromJsonAsync<TResponse>();
     }
     
+    public async Task<byte[]?> PostForFileAsync<TRequest>(string url, TRequest data)
+    {
+        CheckTokenExpiration();
+        AddAuthorizationHeader();
+
+        var response = await client.PostAsJsonAsync(url, data);
+        await HandleResponseErrors(response);
+
+        return await response.Content.ReadAsByteArrayAsync();
+    }
 
 }

@@ -18,12 +18,14 @@
                         <DataTemplate>
                             <Grid Margin="2">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" /> <!-- Название -->
-                                    <ColumnDefinition Width="Auto" /> <!-- Значение -->
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="{Binding Label}" FontWeight="Bold" Foreground="{Binding Foreground}" Grid.Column="0"/>
-                                <TextBlock Text="{Binding Value}" Foreground="{Binding Foreground}" Grid.Column="1" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding Label}" FontWeight="Bold" Foreground="{Binding Foreground}"
+                                           Grid.Column="0" />
+                                <TextBlock Text="{Binding Value}" Foreground="{Binding Foreground}" Grid.Column="1"
+                                           HorizontalAlignment="Right" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -34,93 +36,209 @@
         <TabItem Header="Оборудование" Foreground="Black">
             <ScrollViewer Margin="10">
                 <StackPanel Margin="10">
-                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-                        <TextBlock Text="ID" Width="50" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Наименование" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Категория" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Стоимость" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Статус" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding Equipments}"
+                              AutoGenerateColumns="False"
+                              Margin="10"
+                              Background="DarkSlateBlue"
+                              GridLinesVisibility="All"
+                              BorderBrush="#5C2E00"
+                              BorderThickness="1"
+                              IsReadOnly="True">
 
-                    <ListBox ItemsSource="{Binding Equipments}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="equipment:EquipmentShortResponse">
-                                <Border Background="#FFF8F0" BorderBrush="#5C2E00" BorderThickness="1" Padding="5" Margin="2" CornerRadius="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock Text="{Binding Id}" Width="50" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding Name}" Width="150" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding Category}" Width="150" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding Cost}" Width="150" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding Status}" Width="150" Foreground="#4B3F2F"/>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID"
+                                                Binding="{Binding Id}"
+                                                Width="60" />
+
+                            <DataGridTextColumn Header="Наименование"
+                                                Binding="{Binding Name}"
+                                                Width="150" />
+
+                            <DataGridTextColumn Header="Категория"
+                                                Binding="{Binding Category}"
+                                                Width="150" />
+
+                            <DataGridTextColumn Header="Стоимость"
+                                                Binding="{Binding Cost}"
+                                                Width="120" />
+
+                            <DataGridTextColumn Header="Статус"
+                                                Binding="{Binding Status}"
+                                                Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </StackPanel>
             </ScrollViewer>
         </TabItem>
 
         <TabItem Header="Назначения" Foreground="Black">
-            <StackPanel Margin="10" Orientation="Vertical" Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <ComboBox ItemsSource="{Binding Employees}" SelectedItem="{Binding SelectedEmployee}" Width="200">
+            <Grid Margin="40"
+                  ColumnDefinitions="2*,3*,2*"
+                  RowDefinitions="Auto,20,Auto,20,Auto">
+
+                <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5">
+                    <TextBlock Text="Сотрудник"
+                               FontWeight="Bold"
+                               Foreground="#4B3F2F" />
+
+                    <ComboBox ItemsSource="{Binding Employees}"
+                              SelectedItem="{Binding SelectedEmployee}"
+                              Width="220">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="models:EmployeeDropdown">
-                                <TextBlock Text="{Binding FullName}" Foreground="#4B3F2F"/>
+                                <TextBlock Text="{Binding FullName}"
+                                           Foreground="#4B3F2F" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                </StackPanel>
 
-                    <ComboBox ItemsSource="{Binding AvailableEquipment}" SelectedItem="{Binding SelectedEquipment}" Width="200">
+                <StackPanel Grid.Column="2" Grid.Row="0" Spacing="5">
+                    <TextBlock Text="Оборудование"
+                               FontWeight="Bold"
+                               Foreground="#4B3F2F" />
+
+                    <ComboBox ItemsSource="{Binding AvailableEquipment}"
+                              SelectedItem="{Binding SelectedEquipment}"
+                              Width="220">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="equipment:EquipmentShortResponse">
-                                <TextBlock Text="{Binding Name}" Foreground="#4B3F2F"/>
+                                <TextBlock Text="{Binding Name}"
+                                           Foreground="#4B3F2F" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                </StackPanel>
 
-                    <TextBox Width="200" Watermark="Причина" Text="{Binding Reason, Mode=TwoWay}"
-                             Background="#FFF8F0" Foreground="#4B3F2F" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="5" CaretBrush="#4B3F2F"/>
+                <StackPanel Grid.Column="1"
+                            Grid.Row="2"
+                            HorizontalAlignment="Center"
+                            Spacing="8">
 
-                    <Button Content="Выдать" Command="{Binding AssignCommand}"
-                            Background="#7B3F00" Foreground="White" BorderBrush="#5C2E00" BorderThickness="1" CornerRadius="8">
+                    <TextBlock Text="Причина выдачи"
+                               FontWeight="Bold"
+                               Foreground="#4B3F2F"
+                               HorizontalAlignment="Center" />
+
+                    <TextBox Width="260"
+                             Watermark="Введите причину"
+                             Text="{Binding Reason, Mode=TwoWay}"
+                             Background="#FFF8F0"
+                             Foreground="#4B3F2F"
+                             BorderBrush="#5C2E00"
+                             BorderThickness="1"
+                             CornerRadius="6"
+                             CaretBrush="#4B3F2F" />
+
+                    <Button Content="Выдать"
+                            Width="160"
+                            HorizontalAlignment="Center"
+                            Command="{Binding AssignCommand}"
+                            Background="#7B3F00"
+                            Foreground="White"
+                            BorderBrush="#5C2E00"
+                            BorderThickness="1"
+                            CornerRadius="8">
+
                         <Button.Styles>
                             <Style Selector="Button:hover">
-                                <Setter Property="Background" Value="#5C2E00"/>
+                                <Setter Property="Background" Value="#5C2E00" />
                             </Style>
                         </Button.Styles>
                     </Button>
+
                 </StackPanel>
-            </StackPanel>
+
+            </Grid>
         </TabItem>
 
         <TabItem Header="Отчёты" Foreground="Black">
-            <ScrollViewer Margin="10">
-                <StackPanel Margin="10">
-                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-                        <TextBlock Text="ID сотрудника" Width="50" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Всего записей" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Отсутствует" Width="150" FontWeight="Bold" Foreground="#4B3F2F"/>
-                        <TextBlock Text="Последняя инвентаризация" Width="220" FontWeight="Bold" Foreground="#4B3F2F"/>
+
+            <Grid Margin="20" RowDefinitions="Auto,*">
+
+                <Grid Grid.Row="0" ColumnDefinitions="2*,3*">
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Сотрудник"
+                                   Foreground="#4B3F2F"
+                                   FontWeight="SemiBold" />
+
+                        <ComboBox ItemsSource="{Binding Employees}"
+                                  SelectedItem="{Binding SelectedReportEmployee}"
+                                  DisplayMemberBinding="{Binding FullName}"
+                                  HorizontalAlignment="Stretch"
+                                  Width="220" />
+
+                        <Button Content="Export"
+                                Command="{Binding ExportCommand}"
+                                Width="120"
+                                Height="36"
+                                Background="#7B3F00"
+                                Foreground="White"
+                                CornerRadius="8"
+                                IsEnabled="{Binding CanExport}">
+                            <Button.Styles>
+                                <Style Selector="Button:hover">
+                                    <Setter Property="Background" Value="#5C2E00" />
+                                </Style>
+                            </Button.Styles>
+                        </Button>
                     </StackPanel>
 
-                    <ListBox ItemsSource="{Binding Summary}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="reports:InventorySummaryResponse">
-                                <Border Background="#FFF8F0" BorderBrush="#5C2E00" BorderThickness="1" Padding="5" Margin="2" CornerRadius="3">
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock Text="{Binding EmployeeId}" Width="50" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding TotalRecords}" Width="150" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding MissingCount}" Width="150" Foreground="#4B3F2F"/>
-                                        <TextBlock Text="{Binding LastInventory, StringFormat=dd.MM.yyyy}" Width="220" Foreground="#4B3F2F"/>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-            </ScrollViewer>
+                    <StackPanel Grid.Column="1" Spacing="10" HorizontalAlignment="Left">
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="С"
+                                       Foreground="#4B3F2F"
+                                       FontWeight="SemiBold" />
+                            <DatePicker SelectedDate="{Binding ReportStartDate}"
+                                        Width="150" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="По"
+                                       Foreground="#4B3F2F"
+                                       FontWeight="SemiBold" />
+                            <DatePicker SelectedDate="{Binding ReportEndDate}"
+                                        Width="150" />
+                        </StackPanel>
+
+                    </StackPanel>
+
+                </Grid>
+
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding FilteredSummary}"
+                          AutoGenerateColumns="False"
+                          Margin="10"
+                          Background="DarkSlateBlue"
+                          GridLinesVisibility="All"
+                          BorderBrush="#5C2E00"
+                          BorderThickness="1"
+                          IsReadOnly="True">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID сотрудника"
+                                            Binding="{Binding EmployeeId}"
+                                            Width="*" />
+
+                        <DataGridTextColumn Header="Всего записей"
+                                            Binding="{Binding TotalRecords}"
+                                            Width="*" />
+
+                        <DataGridTextColumn Header="Отсутствует"
+                                            Binding="{Binding MissingCount}"
+                                            Width="*" />
+
+                        <DataGridTextColumn Header="Последняя инвентаризация"
+                                            Binding="{Binding LastInventory, StringFormat='dd.MM.yyyy'}"
+                                            Width="*" />
+                    </DataGrid.Columns>
+
+                </DataGrid>
+
+            </Grid>
+
         </TabItem>
     </TabControl>
 </Window>

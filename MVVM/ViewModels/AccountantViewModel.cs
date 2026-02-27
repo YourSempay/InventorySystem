@@ -1,9 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using MVVM.Models.Dto.Assigments;
 using MVVM.Models.Dto.DashBoard;
 using MVVM.Models.Dto.Equipment;
@@ -67,6 +73,76 @@ public class AccountantViewModel : BaseVM
         set => SetField(ref _reason, value);
     }
 
+
+    private DateTimeOffset _reportStartDate = DateTimeOffset.UtcNow.AddMonths(-1);
+    public DateTimeOffset ReportStartDate
+    {
+        get => _reportStartDate;
+        set => SetField(ref _reportStartDate, value);
+    }
+
+    private DateTimeOffset _reportEndDate = DateTimeOffset.UtcNow;
+    public DateTimeOffset ReportEndDate
+    {
+        get => _reportEndDate;
+        set => SetField(ref _reportEndDate, value);
+    }
+
+    private EmployeeDropdown? _selectedReportEmployee;
+    public EmployeeDropdown? SelectedReportEmployee
+    {
+        get => _selectedReportEmployee;
+        set
+        {
+            if (SetField(ref _selectedReportEmployee, value))
+            {
+                FilterSummary();       // обновляем DataGrid при выборе сотрудника
+                UpdateExportEnabled(); // обновляем состояние кнопки Export
+            }
+        }
+    }
+    
+    private string _selectedReportType = "PDF";
+    public string SelectedReportType
+    {
+        get => _selectedReportType;
+        set => SetField(ref _selectedReportType, value);
+    }
+    
+    private bool _canExport;
+    public bool CanExport
+    {
+        get => _canExport;
+        set => SetField(ref _canExport, value);
+    }
+
+    private void UpdateExportEnabled()
+    {
+        CanExport = SelectedReportEmployee != null && SelectedReportEmployee.Id != -1;
+    }
+
+    private void FilterSummary()
+    {
+        if (SelectedReportEmployee == null || SelectedReportEmployee.Id == -1)
+        {
+            _filteredSummary.Clear();
+            foreach (var item in Summary)
+                _filteredSummary.Add(item);
+        }
+        else
+        {
+            var filtered = Summary.Where(s => s.EmployeeId == SelectedReportEmployee.Id);
+            _filteredSummary.Clear();
+            foreach (var item in filtered)
+                _filteredSummary.Add(item);
+        }
+    }
+
+    private ObservableCollection<InventorySummaryResponse> _filteredSummary = new();
+    public ObservableCollection<InventorySummaryResponse> FilteredSummary => _filteredSummary;
+
+    public AsyncRelayCommand ExportCommand { get; }
+    
     public ObservableCollection<DashboardItem> DashboardItems { get; } = new();
     public ObservableCollection<EquipmentShortResponse> Equipments { get; } = new();
     public ObservableCollection<EmployeeDropdown> Employees { get; } = new();
@@ -87,6 +163,8 @@ public class AccountantViewModel : BaseVM
         get => _selectedEquipment;
         set => SetField(ref _selectedEquipment, value);
     }
+    
+
 
     public ObservableCollection<InventorySummaryResponse> Summary { get; } = new();
 
@@ -96,6 +174,7 @@ public class AccountantViewModel : BaseVM
     {
         this.apiService = apiService;
         AssignCommand = new AsyncRelayCommand(AssignAsync);
+        ExportCommand = new AsyncRelayCommand(ExportAsync);
         _ = LoadAll();
 
     }
@@ -151,6 +230,7 @@ public class AccountantViewModel : BaseVM
         if (employees != null)
         {
             Employees.Clear();
+            Employees.Add(new EmployeeDropdown { Id = -1, FullName = "All" });
             foreach (var e in employees) Employees.Add(e);
         }
 
@@ -193,6 +273,47 @@ public class AccountantViewModel : BaseVM
         SelectedEmployee = null;
         SelectedEquipment = null;
         await LoadAssignments();
+    }
+    
+    private async Task ExportAsync()
+    {
+        var request = new ExportReportRequest
+        {
+            EmployeeId = SelectedReportEmployee?.Id,
+            StartDate = ReportStartDate.DateTime,
+            EndDate = ReportEndDate.DateTime,
+            Type = SelectedReportType
+        };
+
+        var fileBytes = await apiService.PostForFileAsync("reports/export", request);
+        if (fileBytes == null)
+            return;
+
+        var extension = SelectedReportType == "PDF" ? "pdf" : "xlsx";
+        var fileName = $"InventoryReport_{DateTime.UtcNow:yyyyMMdd_HHmmss}.{extension}";
+
+        var saveDialog = new SaveFileDialog
+        {
+            InitialFileName = fileName
+        };
+
+        var mainWindow =
+            (Application.Current?.ApplicationLifetime
+                as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+        var path = await saveDialog.ShowAsync(mainWindow);
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            await File.WriteAllBytesAsync(path, fileBytes);
+
+            // 🚀 Авто-открытие файла
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
     }
 }
 public class DashboardItem
